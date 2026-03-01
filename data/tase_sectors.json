@@ -1,0 +1,93 @@
+{
+  "sectors": {
+    "banks": {
+      "name_he": "בנקים",
+      "name_en": "Banks",
+      "symbols": ["LUMI.TA", "DSCT.TA", "FIBI.TA", "HARL.TA", "MSBI.TA"],
+      "global_sensitivity": ["fed_rate", "us_banks", "credit_spreads"],
+      "description": "Israeli banking sector - sensitive to interest rates and global banking stability"
+    },
+    "tech": {
+      "name_he": "טכנולוגיה",
+      "name_en": "Technology",
+      "symbols": ["CHKP.TA", "NICE.TA", "TEVA.TA", "CYBR.TA", "MNDO.TA"],
+      "global_sensitivity": ["nasdaq", "tech_sentiment", "usd_ils"],
+      "description": "Israeli tech sector - highly correlated with NASDAQ and global tech sentiment"
+    },
+    "real_estate": {
+      "name_he": "נדל\"ן",
+      "name_en": "Real Estate",
+      "symbols": ["AZRG.TA", "AMOT.TA", "MGDL.TA", "BIGA.TA", "RLCO.TA"],
+      "global_sensitivity": ["fed_rate", "boi_rate", "inflation"],
+      "description": "Israeli real estate - sensitive to interest rate changes and inflation"
+    },
+    "energy": {
+      "name_he": "אנרגיה",
+      "name_en": "Energy",
+      "symbols": ["DLEKG.TA", "ENLT.TA", "NXGN.TA", "OREP.TA"],
+      "global_sensitivity": ["oil_price", "natural_gas", "geopolitical"],
+      "description": "Energy sector - driven by commodity prices and geopolitical events"
+    },
+    "pharma": {
+      "name_he": "פארמה וביוטכנולוגיה",
+      "name_en": "Pharma & Biotech",
+      "symbols": ["TEVA.TA", "PMCN.TA", "CGEN.TA", "PLX.TA"],
+      "global_sensitivity": ["fda_decisions", "us_pharma", "usd_ils"],
+      "description": "Pharma sector - influenced by FDA decisions and global pharma trends"
+    },
+    "insurance": {
+      "name_he": "ביטוח",
+      "name_en": "Insurance",
+      "symbols": ["HLAN.TA", "MISH.TA", "CLAL.TA", "FNTS.TA"],
+      "global_sensitivity": ["fed_rate", "boi_rate", "bond_yields"],
+      "description": "Insurance sector - sensitive to bond yields and rate environment"
+    },
+    "retail": {
+      "name_he": "קמעונאות",
+      "name_en": "Retail",
+      "symbols": ["SHUFERSAL.TA", "FOX.TA", "CLIST.TA", "VIST.TA"],
+      "global_sensitivity": ["consumer_confidence", "inflation", "usd_ils"],
+      "description": "Retail sector - driven by consumer confidence and exchange rates for importers"
+    },
+    "defense": {
+      "name_he": "ביטחון ותעשייה צבאית",
+      "name_en": "Defense & Aerospace",
+      "symbols": ["ESLT.TA", "RAFA.TA"],
+      "global_sensitivity": ["geopolitical", "defense_spending", "usd_ils"],
+      "description": "Defense sector - impacted by geopolitical tensions and defense budgets"
+    }
+  },
+  "global_indices": {
+    "sp500": {"symbol": "^GSPC", "name": "S&P 500"},
+    "nasdaq": {"symbol": "^IXIC", "name": "NASDAQ Composite"},
+    "dow": {"symbol": "^DJI", "name": "Dow Jones"},
+    "ta35": {"symbol": "^TA35.TA", "name": "TA-35"},
+    "ta125": {"symbol": "^TA125.TA", "name": "TA-125"},
+    "vix": {"symbol": "^VIX", "name": "VIX Volatility Index"},
+    "dax": {"symbol": "^GDAXI", "name": "DAX (Germany)"}
+  },
+  "commodities": {
+    "oil_wti": {"symbol": "CL=F", "name": "WTI Crude Oil"},
+    "oil_brent": {"symbol": "BZ=F", "name": "Brent Crude Oil"},
+    "gold": {"symbol": "GC=F", "name": "Gold"},
+    "natural_gas": {"symbol": "NG=F", "name": "Natural Gas"},
+    "silver": {"symbol": "SI=F", "name": "Silver"}
+  },
+  "currencies": {
+    "usd_ils": {"symbol": "USDILS=X", "name": "USD/ILS"},
+    "eur_ils": {"symbol": "EURILS=X", "name": "EUR/ILS"},
+    "eur_usd": {"symbol": "EURUSD=X", "name": "EUR/USD"}
+  },
+  "dual_listed": {
+    "description": "Israeli companies dual-listed in US and TASE",
+    "companies": [
+      {"us": "CHKP", "tase": "CHKP.TA", "name": "Check Point Software"},
+      {"us": "NICE", "tase": "NICE.TA", "name": "NICE Systems"},
+      {"us": "TEVA", "tase": "TEVA.TA", "name": "Teva Pharmaceutical"},
+      {"us": "CYBR", "tase": "CYBR.TA", "name": "CyberArk"},
+      {"us": "MNDY", "tase": "MNDO.TA", "name": "Monday.com"},
+      {"us": "WIX", "tase": "WIX.TA", "name": "Wix.com"},
+      {"us": "GLBE", "tase": "GLBE.TA", "name": "Global-E Online"}
+    ]
+  }
+}

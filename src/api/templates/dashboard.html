@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TASE Market Intelligence | מודיעין שוק הון</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-card: #1c2128;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-yellow: #d29922;
+            --accent-blue: #58a6ff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            direction: rtl;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 { font-size: 1.4rem; }
+        .header .status {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            display: inline-block;
+            margin-left: 6px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title .badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+
+        /* Global Indices Ticker */
+        .ticker-strip {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 24px;
+            display: flex;
+            gap: 24px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+
+        .ticker-item {
+            display: flex;
+            gap: 8px;
+            white-space: nowrap;
+            align-items: center;
+        }
+
+        .ticker-name { color: var(--text-secondary); }
+        .ticker-price { color: var(--text-primary); font-weight: 600; }
+        .positive { color: var(--accent-green); }
+        .negative { color: var(--accent-red); }
+
+        /* Heatmap */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+        }
+
+        .heatmap-cell {
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .heatmap-cell:hover { transform: scale(1.05); }
+        .heatmap-cell .sector-name { font-size: 0.8rem; margin-bottom: 4px; }
+        .heatmap-cell .sector-change { font-size: 1.2rem; font-weight: 700; }
+
+        /* Alerts */
+        .alert-list { max-height: 400px; overflow-y: auto; }
+
+        .alert-item {
+            padding: 10px;
+            border-right: 3px solid var(--border);
+            margin-bottom: 8px;
+            background: var(--bg-secondary);
+            border-radius: 0 6px 6px 0;
+            font-size: 0.85rem;
+        }
+
+        .alert-item.critical { border-right-color: var(--accent-red); }
+        .alert-item.warning { border-right-color: var(--accent-yellow); }
+        .alert-item.info { border-right-color: var(--accent-blue); }
+
+        .alert-title { font-weight: 600; margin-bottom: 4px; }
+        .alert-desc { color: var(--text-secondary); font-size: 0.8rem; }
+        .alert-time { color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px; }
+
+        /* Scenario Simulator */
+        .scenario-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .scenario-form select, .scenario-form input, .scenario-form button {
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .scenario-form button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .scenario-form button:hover { opacity: 0.9; }
+
+        .scenario-results {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .scenario-sector {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Timeline */
+        .timeline { max-height: 400px; overflow-y: auto; }
+
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .timeline-dot.market_move { background: var(--accent-blue); }
+        .timeline-dot.macro { background: var(--accent-yellow); }
+        .timeline-dot.sentiment { background: var(--accent-green); }
+
+        /* Plotly chart container */
+        .chart-container { width: 100%; min-height: 300px; }
+
+        /* Full-width cards */
+        .full-width { grid-column: 1 / -1; }
+
+        /* Loading spinner */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .tab.active {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-bottom-color: var(--bg-card);
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            .scenario-results { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏦 TASE Market Intelligence</h1>
+        <div class="status">
+            <span><span class="status-dot"></span> מערכת פעילה</span>
+            <span id="last-update">עדכון אחרון: טוען...</span>
+        </div>
+    </div>
+
+    <div class="ticker-strip" id="ticker-strip">
+        <div class="loading">טוען נתוני שוק...</div>
+    </div>
+
+    <div class="container">
+        <!-- Sector Heatmap -->
+        <div class="grid">
+            <div class="card full-width">
+                <div class="card-title">
+                    מפת חום סקטוריאלית - בורסת תל אביב
+                    <span class="badge" id="heatmap-context">טוען...</span>
+                </div>
+                <div class="heatmap-grid" id="heatmap"></div>
+            </div>
+        </div>
+
+        <!-- Main content grid -->
+        <div class="grid">
+            <!-- Alerts -->
+            <div class="card">
+                <div class="card-title">
+                    התראות סיבתיות
+                    <span class="badge" id="alert-count">0</span>
+                </div>
+                <div class="alert-list" id="alerts">
+                    <div class="loading">טוען התראות...</div>
+                </div>
+            </div>
+
+            <!-- Scenario Simulator -->
+            <div class="card">
+                <div class="card-title">סימולטור "מה אם?"</div>
+                <div class="scenario-form">
+                    <select id="scenario-var">
+                        <option value="oil_price">מחיר נפט</option>
+                        <option value="usd_ils">שער USD/ILS</option>
+                        <option value="fed_rate">ריבית הפד</option>
+                        <option value="nasdaq">נאסד"ק</option>
+                        <option value="sp500">S&P 500</option>
+                        <option value="gold">זהב</option>
+                        <option value="vix">VIX</option>
+                        <option value="inflation">אינפלציה</option>
+                    </select>
+                    <input type="number" id="scenario-change" value="10" step="1" style="width: 80px;" />
+                    <span style="align-self:center; color: var(--text-secondary);">%</span>
+                    <button onclick="runScenario()">הרץ סימולציה</button>
+                </div>
+                <div id="scenario-explanation" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;"></div>
+                <div class="scenario-results" id="scenario-results"></div>
+            </div>
+
+            <!-- Correlation Matrix Chart -->
+            <div class="card full-width">
+                <div class="card-title">מטריצת קורלציות - שווקים גלובליים מול מקומיים</div>
+                <div class="chart-container" id="correlation-chart"></div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+                <div class="card-title">ציר זמן משולב</div>
+                <div class="timeline" id="timeline">
+                    <div class="loading">טוען אירועים...</div>
+                </div>
+            </div>
+
+            <!-- Sensitivity Ranking -->
+            <div class="card">
+                <div class="card-title">דירוג רגישות לעולם</div>
+                <div id="sensitivity-list">
+                    <div class="loading">טוען...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contagion Scenarios -->
+        <div class="grid">
+            <div class="card full-width">
+                <div class="card-title">תרחישי הדבקה (Contagion Analysis)</div>
+                <div class="tabs" id="contagion-tabs"></div>
+                <div id="contagion-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '';
+
+        // --- Data Fetchers ---
+
+        async function fetchJSON(url) {
+            try {
+                const resp = await fetch(API + url);
+                return await resp.json();
+            } catch (e) {
+                console.error('Fetch error:', url, e);
+                return null;
+            }
+        }
+
+        // --- Ticker Strip ---
+        async function loadTicker() {
+            const data = await fetchJSON('/api/market/snapshots?market=INDEX&limit=10');
+            const strip = document.getElementById('ticker-strip');
+            if (!data || data.length === 0) {
+                strip.innerHTML = '<span style="color:var(--text-secondary)">אין נתונים זמינים</span>';
+                return;
+            }
+
+            strip.innerHTML = data.map(d => {
+                const cls = (d.change_pct || 0) >= 0 ? 'positive' : 'negative';
+                const sign = (d.change_pct || 0) >= 0 ? '+' : '';
+                return `<div class="ticker-item">
+                    <span class="ticker-name">${d.name || d.symbol}</span>
+                    <span class="ticker-price">${d.price.toLocaleString()}</span>
+                    <span class="${cls}">${sign}${(d.change_pct || 0).toFixed(2)}%</span>
+                </div>`;
+            }).join('');
+
+            document.getElementById('last-update').textContent =
+                'עדכון אחרון: ' + new Date().toLocaleTimeString('he-IL');
+        }
+
+        // --- Heatmap ---
+        async function loadHeatmap() {
+            const data = await fetchJSON('/api/heatmap/sectors');
+            const container = document.getElementById('heatmap');
+            const ctxBadge = document.getElementById('heatmap-context');
+
+            if (!data || !data.sectors || data.sectors.length === 0) {
+                container.innerHTML = '<div class="loading">אין נתוני סקטורים זמינים</div>';
+                return;
+            }
+
+            ctxBadge.textContent = data.global_context || '';
+
+            container.innerHTML = data.sectors.map(s => {
+                const change = s.avg_change_pct || 0;
+                const intensity = Math.min(Math.abs(change) * 20, 80);
+                let bg;
+                if (change > 0) bg = `rgba(63, 185, 80, ${intensity / 100})`;
+                else if (change < 0) bg = `rgba(248, 81, 73, ${intensity / 100})`;
+                else bg = 'rgba(139, 148, 158, 0.2)';
+
+                const sign = change >= 0 ? '+' : '';
+                return `<div class="heatmap-cell" style="background: ${bg}" title="${s.name_en}">
+                    <div class="sector-name">${s.name_he}</div>
+                    <div class="sector-change">${sign}${change.toFixed(1)}%</div>
+                    <div style="font-size:0.7rem; color: var(--text-secondary); margin-top:4px;">${s.stock_count} מניות</div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- Alerts ---
+        async function loadAlerts() {
+            const data = await fetchJSON('/api/alerts/?limit=15');
+            const container = document.getElementById('alerts');
+            const badge = document.getElementById('alert-count');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="loading">אין התראות</div>';
+                badge.textContent = '0';
+                return;
+            }
+
+            badge.textContent = data.length;
+            container.innerHTML = data.map(a => {
+                const time = new Date(a.timestamp).toLocaleString('he-IL');
+                return `<div class="alert-item ${a.severity}">
+                    <div class="alert-title">${a.title}</div>
+                    <div class="alert-desc">${a.description}</div>
+                    <div class="alert-time">${time}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- Scenario Simulator ---
+        async function runScenario() {
+            const variable = document.getElementById('scenario-var').value;
+            const change = parseFloat(document.getElementById('scenario-change').value);
+            const container = document.getElementById('scenario-results');
+            const explanation = document.getElementById('scenario-explanation');
+
+            container.innerHTML = '<div class="loading">מחשב...</div>';
+
+            const data = await fetchJSON(`/api/analysis/scenarios/run?variable=${variable}&change_pct=${change}`);
+            if (!data || data.error) {
+                container.innerHTML = `<div class="loading">${data?.error || 'שגיאה'}</div>`;
+                return;
+            }
+
+            explanation.textContent = data.explanation || '';
+
+            const allSectors = [...(data.winners || []), ...(data.losers || [])];
+            allSectors.sort((a, b) => b.expected_change_pct - a.expected_change_pct);
+
+            container.innerHTML = allSectors.map(s => {
+                const cls = s.expected_change_pct >= 0 ? 'positive' : 'negative';
+                const sign = s.expected_change_pct >= 0 ? '+' : '';
+                return `<div class="scenario-sector">
+                    <span>${s.sector_name_he || s.sector}</span>
+                    <span class="${cls}">${sign}${s.expected_change_pct.toFixed(1)}%</span>
+                </div>`;
+            }).join('');
+        }
+
+        // --- Correlation Matrix ---
+        async function loadCorrelationMatrix() {
+            const data = await fetchJSON('/api/analysis/correlations/matrix?period=3mo');
+            const container = document.getElementById('correlation-chart');
+
+            if (!data || !data.matrix || !data.assets) {
+                container.innerHTML = '<div class="loading">אין נתוני קורלציה (נדרשת שליפת נתונים ראשונית)</div>';
+                return;
+            }
+
+            const assets = data.assets;
+            const z = assets.map(a => assets.map(b => data.matrix[a]?.[b] ?? 0));
+
+            Plotly.newPlot(container, [{
+                z: z,
+                x: assets,
+                y: assets,
+                type: 'heatmap',
+                colorscale: [
+                    [0, '#f85149'],
+                    [0.5, '#161b22'],
+                    [1, '#3fb950']
+                ],
+                zmin: -1,
+                zmax: 1,
+                text: z.map(row => row.map(v => v.toFixed(2))),
+                texttemplate: '%{text}',
+                textfont: { color: '#e6edf3', size: 11 },
+            }], {
+                paper_bgcolor: '#1c2128',
+                plot_bgcolor: '#1c2128',
+                font: { color: '#e6edf3' },
+                margin: { l: 100, r: 20, t: 20, b: 80 },
+                xaxis: { tickangle: -45 },
+            }, { responsive: true });
+        }
+
+        // --- Timeline ---
+        async function loadTimeline() {
+            const data = await fetchJSON('/api/heatmap/timeline?limit=20');
+            const container = document.getElementById('timeline');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="loading">אין אירועים</div>';
+                return;
+            }
+
+            container.innerHTML = data.map(e => {
+                const time = new Date(e.timestamp).toLocaleString('he-IL');
+                return `<div class="timeline-item">
+                    <div class="timeline-dot ${e.event_type}"></div>
+                    <div>
+                        <div style="font-weight:600">${e.title}</div>
+                        <div style="color: var(--text-secondary); font-size:0.8rem">${e.description}</div>
+                        <div style="color: var(--text-secondary); font-size:0.75rem">${time}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- Sensitivity ---
+        async function loadSensitivity() {
+            const data = await fetchJSON('/api/analysis/sensitivity');
+            const container = document.getElementById('sensitivity-list');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="loading">אין נתונים</div>';
+                return;
+            }
+
+            container.innerHTML = data.slice(0, 15).map(s => {
+                const pct = (s.global_sensitivity * 100).toFixed(0);
+                const width = s.global_sensitivity * 100;
+                const color = s.global_sensitivity > 0.7 ? 'var(--accent-red)' :
+                              s.global_sensitivity > 0.4 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                return `<div style="margin-bottom: 8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:2px;">
+                        <span>${s.symbol}</span>
+                        <span style="color: var(--text-secondary)">${pct}%</span>
+                    </div>
+                    <div style="height:4px; background:var(--bg-secondary); border-radius:2px;">
+                        <div style="height:100%; width:${width}%; background:${color}; border-radius:2px;"></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- Contagion ---
+        async function loadContagionScenarios() {
+            const data = await fetchJSON('/api/analysis/contagion/scenarios');
+            const tabs = document.getElementById('contagion-tabs');
+
+            if (!data || data.length === 0) {
+                tabs.innerHTML = '<div class="loading">אין תרחישים</div>';
+                return;
+            }
+
+            tabs.innerHTML = data.map((s, i) =>
+                `<div class="tab ${i === 0 ? 'active' : ''}" onclick="loadContagion('${s.key}', this)">
+                    ${s.trigger_he}
+                </div>`
+            ).join('');
+
+            // Load first scenario
+            loadContagion(data[0].key, tabs.querySelector('.tab'));
+        }
+
+        async function loadContagion(key, tabEl) {
+            // Update active tab
+            document.querySelectorAll('#contagion-tabs .tab').forEach(t => t.classList.remove('active'));
+            if (tabEl) tabEl.classList.add('active');
+
+            const container = document.getElementById('contagion-result');
+            container.innerHTML = '<div class="loading">מנתח...</div>';
+
+            const data = await fetchJSON(`/api/analysis/contagion/analyze/${key}`);
+            if (!data || data.error) {
+                container.innerHTML = `<div class="loading">${data?.error || 'שגיאה'}</div>`;
+                return;
+            }
+
+            const riskColor = data.risk_level === 'high' ? 'var(--accent-red)' :
+                              data.risk_level === 'medium' ? 'var(--accent-yellow)' : 'var(--accent-green)';
+
+            let html = `<div style="margin-bottom:12px;">
+                <span style="font-size:0.9rem; font-weight:600;">רמת סיכון כוללת: </span>
+                <span style="color:${riskColor}; font-weight:700;">${data.risk_level.toUpperCase()}</span>
+            </div>`;
+
+            html += `<div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">
+                ${data.explanation || ''}
+            </div>`;
+
+            html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:8px;">';
+            for (const [sector, info] of Object.entries(data.affected_sectors || {})) {
+                const rc = info.risk_level === 'high' ? 'var(--accent-red)' :
+                           info.risk_level === 'positive' ? 'var(--accent-green)' :
+                           info.risk_level === 'medium' ? 'var(--accent-yellow)' : 'var(--text-secondary)';
+                html += `<div style="background:var(--bg-secondary); padding:10px; border-radius:6px; border-right:3px solid ${rc};">
+                    <div style="font-weight:600; font-size:0.85rem;">${info.name_he || sector}</div>
+                    <div style="font-size:0.75rem; color:${rc}; margin:4px 0;">סיכון: ${info.risk_level}</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary);">${info.reason}</div>
+                </div>`;
+            }
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        // --- Initialize ---
+        async function init() {
+            await Promise.all([
+                loadTicker(),
+                loadHeatmap(),
+                loadAlerts(),
+                loadTimeline(),
+                loadSensitivity(),
+                loadContagionScenarios(),
+                loadCorrelationMatrix(),
+            ]);
+
+            // Auto-refresh every 5 minutes
+            setInterval(() => {
+                loadTicker();
+                loadHeatmap();
+                loadAlerts();
+            }, 300000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
