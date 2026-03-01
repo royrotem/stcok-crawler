@@ -35,7 +35,7 @@ GLOBAL_BENCHMARKS = {
 
 
 def _load_sectors() -> dict:
-    with open(SECTOR_FILE) as f:
+    with open(SECTOR_FILE, encoding="utf-8") as f:
         return json.load(f)
 
 

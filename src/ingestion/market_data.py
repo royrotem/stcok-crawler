@@ -17,7 +17,7 @@ SECTOR_FILE = Path(__file__).parent.parent.parent / "data" / "tase_sectors.json"
 
 
 def _load_sector_config() -> dict:
-    with open(SECTOR_FILE) as f:
+    with open(SECTOR_FILE, encoding="utf-8") as f:
         return json.load(f)
 
 

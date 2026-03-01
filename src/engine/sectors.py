@@ -13,7 +13,7 @@ SECTOR_FILE = Path(__file__).parent.parent.parent / "data" / "tase_sectors.json"
 
 def load_sectors() -> dict:
     """Load the full sector configuration."""
-    with open(SECTOR_FILE) as f:
+    with open(SECTOR_FILE, encoding="utf-8") as f:
         return json.load(f)
 
 

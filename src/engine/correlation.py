@@ -126,7 +126,7 @@ def compute_cross_market_matrix(period: str = "6mo") -> dict:
     symbols = {
         "S&P 500": "^GSPC",
         "NASDAQ": "^IXIC",
-        "TA-35": "^TA35.TA",
+        "TA-35": "TA35.TA",
         "Oil (WTI)": "CL=F",
         "Gold": "GC=F",
         "USD/ILS": "USDILS=X",
@@ -154,7 +154,7 @@ def compute_cross_market_matrix(period: str = "6mo") -> dict:
     corr_matrix = df.corr()
 
     return {
-        "matrix": corr_matrix.round(4).to_dict(),
+        "matrix": corr_matrix.round(4).where(corr_matrix.notna(), other=None).to_dict(),
         "data_points": len(df),
         "period": period,
         "assets": list(price_data.keys()),
